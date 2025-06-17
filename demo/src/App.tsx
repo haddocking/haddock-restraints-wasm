@@ -1,5 +1,10 @@
+import { Interactor } from "./Components/Interactor";
 function App() {
-  return <></>;
+  return (
+    <>
+      <Interactor />
+    </>
+  );
 }
 
 export default App;

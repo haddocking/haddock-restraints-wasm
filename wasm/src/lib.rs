@@ -1,15 +1,24 @@
-use serde::{Deserialize, Serialize};
-use tsify::Tsify;
+use haddock_restraints::Interactor;
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
-pub struct Test {
-    structure: String,
+pub struct WasmInteractor {
+    inner: Interactor,
 }
 
-#[derive(Debug, Serialize, Deserialize, Tsify)]
-#[tsify(into_wasm_abi, from_wasm_abi)]
-pub struct AnotherTest {
-    chain1: String,
-    chain2: String,
+#[wasm_bindgen]
+impl WasmInteractor {
+    #[wasm_bindgen(constructor)]
+    pub fn new(id: u16, chain: String, active: Vec<i16>, passive: Vec<i16>) -> Self {
+        let mut interactor = Interactor::new(id);
+
+        interactor.set_chain(&chain);
+        interactor.set_active(active);
+        interactor.set_passive(passive);
+        WasmInteractor { inner: interactor }
+    }
+
+    pub fn print(&self) -> String {
+        "Hello!".to_string()
+    }
 }
