@@ -11,6 +11,10 @@ export default defineConfig({
       // allow: ["wasm-pkg", "*"],
     },
   },
+  build: {
+    outDir: "../dist",
+    emptyOutDir: true,
+  },
   optimizeDeps: {
     exclude: ["haddock-restraints-wasm"],
   },
