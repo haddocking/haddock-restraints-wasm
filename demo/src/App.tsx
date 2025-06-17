@@ -1,11 +1,7 @@
-import { Interactor } from "./Components/Interactor";
+import { GenTbl } from "./GenTbl";
 
 function App() {
-  return (
-    <>
-      <Interactor />
-    </>
-  );
+  return <GenTbl />;
 }
 
 export default App;
