@@ -2,7 +2,7 @@ import init, { WasmAir, WasmInteractor } from "haddock-restraints-wasm";
 import { useEffect, useState } from "react";
 
 export const Interactor = () => {
-  const [executed, setExecuted] = useState<boolean>(false);
+  const [tbl, setTbl] = useState<string>("");
 
   async function load() {
     await init();
@@ -17,12 +17,12 @@ export const Interactor = () => {
 
     const result = air.gen_tbl();
     console.log(result);
-    setExecuted(true);
+    setTbl(result);
   }
 
   useEffect(() => {
     load();
-  }, [executed]);
+  }, [tbl]);
 
-  return <></>;
+  return <pre>{tbl}</pre>;
 };
