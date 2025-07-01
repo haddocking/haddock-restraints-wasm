@@ -279,9 +279,9 @@ dependencies = [
 
 [[package]]
 name = "haddock-restraints"
-version = "0.8.4"
+version = "0.8.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ef5925c2e04b1fa7a151859b1faf69e2ef68ce17d01fc90ca5bfe7742213a2d8"
+checksum = "c96147db9609188fe513566d78cb9ddc7ebdc7f666036b50b0fa03d7bcd879ad"
 dependencies = [
  "clap",
  "itertools",
