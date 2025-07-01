@@ -24,10 +24,10 @@ js-sys = "0.3"
 serde = { version = "1.0", features = ["derive"] }
 console_error_panic_hook = { version = "0.1", optional = true }
 tsify = "0.5"
-haddock-restraints = "0.8.3"
-# haddock-restraints gets `getrandom>2`, so the feature is `js`
-#  in newer versions the feature is `wasm_js`
-getrandom = { version = "0.2", features = ["js"] }
+pdbtbx = "0.12"
+haddock-restraints = "0.8.4"
+# export RUSTFLAGS='--cfg getrandom_backend="wasm_js"'
+getrandom = { version = "0.3", features = ["wasm_js"] }
 
 
 [profile.release]

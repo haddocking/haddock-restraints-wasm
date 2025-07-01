@@ -1,3 +1,5 @@
+use std::io::{BufReader, Cursor};
+
 use haddock_restraints::{Air, Interactor};
 use wasm_bindgen::prelude::*;
 
@@ -46,8 +48,25 @@ impl WasmInteractor {
         self.inner.set_passive(passive);
     }
 
-    pub fn set_structure(&mut self, structure: &str) {
-        todo!()
+    pub fn set_pdb(&mut self, bytes: &js_sys::Uint8Array) {
+        if bytes.is_null() {
+            return;
+        };
+
+        let vec = bytes.to_vec();
+        let pdb_string = String::from_utf8(vec).unwrap();
+
+        let bytes = pdb_string.as_bytes().to_vec();
+        let cursor = Cursor::new(bytes);
+        let buf = BufReader::new(cursor);
+
+        let mut opts = pdbtbx::ReadOptions::new();
+        opts.set_format(pdbtbx::Format::Pdb)
+            .set_level(pdbtbx::StrictnessLevel::Loose);
+
+        if let Ok((pdb, _)) = opts.read_raw(buf) {
+            self.inner.set_pdb(pdb);
+        }
     }
 
     pub fn set_surface_as_passive(&mut self) {
@@ -65,6 +84,34 @@ impl WasmInteractor {
     pub fn set_passive_atoms(&mut self, atoms: Vec<String>) {
         self.inner.set_passive_atoms(atoms);
     }
+
+    pub fn set_passive_from_active(&mut self) {
+        self.inner.set_passive_from_active();
+    }
+
+    pub fn remove_buried_residues(&mut self) {
+        self.inner.remove_buried_residues();
+    }
+}
+
+pub struct PDBErrorWrapper {
+    level: String,
+    short_description: String,
+    long_description: String,
+    context: String,
+}
+
+fn collapse_pdb_error(e: &[pdbtbx::PDBError]) -> PDBErrorWrapper {
+    let e: pdbtbx::PDBError = e[0].clone();
+
+    let pdb_error = PDBErrorWrapper {
+        level: e.level().to_string(),
+        short_description: e.short_description().to_string(),
+        long_description: e.long_description().to_string(),
+        context: e.context().to_string(),
+    };
+
+    pdb_error
 }
 
 #[wasm_bindgen]
