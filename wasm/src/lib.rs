@@ -1,6 +1,10 @@
-use std::io::{BufReader, Cursor};
+use std::{
+    error::Error,
+    io::{BufReader, Cursor},
+};
 
 use haddock_restraints::{Air, Interactor};
+use pdbtbx::PDB;
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
@@ -119,6 +123,19 @@ fn collapse_pdb_error(e: &[pdbtbx::PDBError]) -> PDBErrorWrapper {
 }
 
 #[wasm_bindgen]
+pub fn restraint_bodies(bytes: &js_sys::Uint8Array) -> String {
+    if let Some(pdb) = bytes_to_pdb(bytes) {
+        match haddock_restraints::restraint_bodies(pdb, &None) {
+            Ok(tbl) => return tbl,
+            Err(e) => {
+                return format!("Failed to generate restraint bodies: {e}",);
+            }
+        }
+    }
+    String::from("Failed to generate restraint bodies: Invalid PDB data.")
+}
+
+#[wasm_bindgen]
 pub struct WasmAir {
     inner: Air,
 }
@@ -147,5 +164,28 @@ impl WasmAir {
             Ok(r) => r,
             Err(r) => r.to_string(),
         }
+    }
+}
+
+pub fn bytes_to_pdb(bytes: &js_sys::Uint8Array) -> Option<PDB> {
+    if bytes.is_null() {
+        return None;
+    };
+
+    let vec = bytes.to_vec();
+    let pdb_string = String::from_utf8(vec).unwrap();
+
+    let bytes = pdb_string.as_bytes().to_vec();
+    let cursor = Cursor::new(bytes);
+    let buf = BufReader::new(cursor);
+
+    let mut opts = pdbtbx::ReadOptions::new();
+    opts.set_format(pdbtbx::Format::Pdb)
+        .set_level(pdbtbx::StrictnessLevel::Loose);
+
+    if let Ok((pdb, _)) = opts.read_raw(buf) {
+        Some(pdb)
+    } else {
+        None
     }
 }
