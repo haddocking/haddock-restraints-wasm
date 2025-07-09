@@ -1,3 +1,2 @@
-wasm/pkg
-wasm/target
-dist
+pkg
+target
