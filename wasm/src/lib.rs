@@ -89,7 +89,7 @@ impl WasmInteractor {
         self.inner.set_passive_from_active();
     }
 
-    pub fn set_remove_buried_residues(&mut self) {
+    pub fn remove_buried_residues(&mut self) {
         self.inner.remove_buried_residues();
     }
 

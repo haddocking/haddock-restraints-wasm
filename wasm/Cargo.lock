@@ -298,7 +298,7 @@ dependencies = [
 
 [[package]]
 name = "haddock-restraints-wasm"
-version = "0.0.2"
+version = "0.0.4"
 dependencies = [
  "console_error_panic_hook",
  "getrandom",
