@@ -1,7 +1,4 @@
-use std::{
-    error::Error,
-    io::{BufReader, Cursor},
-};
+use std::io::{BufReader, Cursor};
 
 use haddock_restraints::{Air, Interactor};
 use pdbtbx::PDB;
@@ -99,6 +96,22 @@ impl WasmInteractor {
 
     pub fn set_filter_buried_cutoff(&mut self, cutoff: f64) {
         self.inner.set_filter_buried_cutoff(cutoff);
+    }
+
+    pub fn get_active(&mut self) -> Vec<i16> {
+        self.inner
+            .active()
+            .clone()
+            .into_iter()
+            .collect::<Vec<i16>>()
+    }
+
+    pub fn get_passive(&mut self) -> Vec<i16> {
+        self.inner
+            .passive()
+            .clone()
+            .into_iter()
+            .collect::<Vec<i16>>()
     }
 }
 

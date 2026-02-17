@@ -1,6 +1,6 @@
 [package]
 name = "haddock-restraints-wasm"
-version = "0.0.5"
+version = "0.0.6"
 edition = "2021"
 description = "WebAssembly binbdings for haddock-restraints"
 license = "MIT"
