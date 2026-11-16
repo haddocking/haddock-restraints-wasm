@@ -1,6 +1,4 @@
-use std::io::{BufReader, Cursor};
-
-use haddock_restraints::{Air, Interactor};
+use haddock_restraints::{load_pdb_from_content, Air, Interactor};
 use pdbtbx::PDB;
 use wasm_bindgen::prelude::*;
 
@@ -49,25 +47,9 @@ impl WasmInteractor {
         self.inner.set_passive(passive);
     }
 
-    pub fn set_pdb(&mut self, bytes: &js_sys::Uint8Array) {
-        if bytes.is_null() {
-            return;
-        };
-
-        let vec = bytes.to_vec();
-        let pdb_string = String::from_utf8(vec).unwrap();
-
-        let bytes = pdb_string.as_bytes().to_vec();
-        let cursor = Cursor::new(bytes);
-        let buf = BufReader::new(cursor);
-
-        let mut opts = pdbtbx::ReadOptions::new();
-        opts.set_format(pdbtbx::Format::Pdb)
-            .set_level(pdbtbx::StrictnessLevel::Loose);
-
-        if let Ok((pdb, _)) = opts.read_raw(buf) {
-            self.inner.set_pdb(pdb);
-        }
+    pub fn set_pdb(&mut self, bytes: &js_sys::Uint8Array) -> Result<(), JsError> {
+        self.inner.set_pdb(bytes_to_pdb(bytes)?);
+        Ok(())
     }
 
     pub fn set_surface_as_passive(&mut self) {
@@ -115,37 +97,10 @@ impl WasmInteractor {
     }
 }
 
-pub struct PDBErrorWrapper {
-    level: String,
-    short_description: String,
-    long_description: String,
-    context: String,
-}
-
-fn collapse_pdb_error(e: &[pdbtbx::PDBError]) -> PDBErrorWrapper {
-    let e: pdbtbx::PDBError = e[0].clone();
-
-    let pdb_error = PDBErrorWrapper {
-        level: e.level().to_string(),
-        short_description: e.short_description().to_string(),
-        long_description: e.long_description().to_string(),
-        context: e.context().to_string(),
-    };
-
-    pdb_error
-}
-
 #[wasm_bindgen]
-pub fn restraint_bodies(bytes: &js_sys::Uint8Array) -> String {
-    if let Some(pdb) = bytes_to_pdb(bytes) {
-        match haddock_restraints::restraint_bodies(pdb, &None) {
-            Ok(tbl) => return tbl,
-            Err(e) => {
-                return format!("Failed to generate restraint bodies: {e}",);
-            }
-        }
-    }
-    String::from("Failed to generate restraint bodies: Invalid PDB data.")
+pub fn restraint_bodies(bytes: &js_sys::Uint8Array) -> Result<String, JsError> {
+    haddock_restraints::restraint_bodies(bytes_to_pdb(bytes)?, &None, "")
+        .map_err(|e| JsError::new(&format!("Failed to generate restraint bodies: {e}")))
 }
 
 #[wasm_bindgen]
@@ -172,33 +127,19 @@ impl WasmAir {
         }
     }
 
-    pub fn gen_tbl(&self) -> String {
-        match self.inner.gen_tbl() {
-            Ok(r) => r,
-            Err(r) => r.to_string(),
-        }
+    pub fn gen_tbl(&self) -> Result<String, JsError> {
+        self.inner.gen_tbl().map_err(JsError::new)
     }
 }
 
-pub fn bytes_to_pdb(bytes: &js_sys::Uint8Array) -> Option<PDB> {
-    if bytes.is_null() {
-        return None;
-    };
-
-    let vec = bytes.to_vec();
-    let pdb_string = String::from_utf8(vec).unwrap();
-
-    let bytes = pdb_string.as_bytes().to_vec();
-    let cursor = Cursor::new(bytes);
-    let buf = BufReader::new(cursor);
-
-    let mut opts = pdbtbx::ReadOptions::new();
-    opts.set_format(pdbtbx::Format::Pdb)
-        .set_level(pdbtbx::StrictnessLevel::Loose);
-
-    if let Ok((pdb, _)) = opts.read_raw(buf) {
-        Some(pdb)
-    } else {
-        None
-    }
+/// Reads a PDB as the CLI does (lines padded to 80 characters, first model)
+pub fn bytes_to_pdb(bytes: &js_sys::Uint8Array) -> Result<PDB, JsError> {
+    let content = String::from_utf8(bytes.to_vec())?;
+    load_pdb_from_content(&content).map_err(|e| {
+        JsError::new(&format!(
+            "Invalid PDB data: {} ({})",
+            e[0].short_description(),
+            e[0].long_description()
+        ))
+    })
 }
